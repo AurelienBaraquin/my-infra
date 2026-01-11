@@ -19,7 +19,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "🚀 Démarrage du déploiement..."
-            cd ~/web-server
+            cd ~/my-infra
 
             git pull
             git submodule update --remote --merge
