@@ -15,7 +15,56 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
+        max-file: "3"aservices:
+  # Proxy
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: web-gateway
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - portfolio
+      - pixelquest
+    logging: &logging-config
+      driver: "json-file"
+      options:
+        max-size: "10m"
         max-file: "3"
+
+  # Portfolio
+  portfolio:
+    build: ./portfolio
+    container_name: app-portfolio
+    restart: always
+    logging: *logging-config
+
+  # PixelQuest
+  pixelquest:
+    build: ./pixel_quest
+    container_name: app-pixelquest
+    restart: always
+    env_file:
+      - ./secrets/pixel_quest.env
+    logging: *logging-config
+
+  # Portainer (Caché, accessible via Tunnel SSH)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+
+volumes:
+  portainer_data:
 
 
 
