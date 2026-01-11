@@ -1,5 +1,5 @@
 services:
-  # 1. Proxy
+  # Proxy
   reverse-proxy:
     image: nginx:alpine
     container_name: web-gateway
@@ -17,14 +17,18 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # 2. Portfolio
+
+
+  # Applications
+
+  # 1. Portfolio
   portfolio:
     build: ./portfolio
     container_name: app-portfolio
     restart: always
     logging: *logging-config
 
-  # 3. PixelQuest
+  # 2. PixelQuest
   pixelquest:
     build: ./pixel_quest
     container_name: app-pixelquest
@@ -32,3 +36,25 @@ services:
     env_file:
       - ./secrets/pixel_quest.env
     logging: *logging-config
+
+
+
+
+
+  # Tools
+
+  # Portainer
+  portainer:
+      image: portainer/portainer-ce:latest
+      container_name: portainer
+      restart: always
+      security_opt:
+        - no-new-privileges:true
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - portainer_data:/data
+      ports:
+        - "127.0.0.1:9000:9000"
+
+  volumes:
+    portainer_data:
