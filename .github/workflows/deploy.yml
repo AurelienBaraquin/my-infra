@@ -1,0 +1,29 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH
+        # On utilise une action toute faite très populaire pour le SSH
+        uses: appleboy/ssh-action@v1.0.3 
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🚀 Démarrage du déploiement..."
+            cd ~/web-server
+
+            git pull
+            git submodule update --remote --merge
+            docker compose up -d --build
+            docker image prune -f
+            
+            echo "✅ Déploiement terminé !"
