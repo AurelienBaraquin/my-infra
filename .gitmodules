@@ -1,0 +1,6 @@
+[submodule "portfolio"]
+	path = portfolio
+	url = https://github.com/AurelienBaraquin/portfolio.git
+[submodule "pixel_quest"]
+	path = pixel_quest
+	url = https://github.com/AurelienBaraquin/pixel_quest.git
