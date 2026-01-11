@@ -33,7 +33,7 @@ services:
       - ./secrets/pixel_quest.env
     logging: *logging-config
 
-  # Portainer (Caché, accessible via Tunnel SSH)
+  # Portainer
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
