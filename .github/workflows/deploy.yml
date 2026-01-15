@@ -11,14 +11,12 @@ jobs:
     
     steps:
       - name: Deploy via SSH
-        # On utilise une action toute faite très populaire pour le SSH
         uses: appleboy/ssh-action@v1.0.3 
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "🚀 Démarrage du déploiement..."
             cd ~/my-infra
 
             git pull
