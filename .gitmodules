@@ -4,3 +4,6 @@
 [submodule "pixel_quest"]
 	path = pixel_quest
 	url = https://github.com/AurelienBaraquin/pixel_quest.git
+[submodule "manifeste"]
+	path = manifeste
+	url = git@github.com:AurelienBaraquin/Manifeste.git

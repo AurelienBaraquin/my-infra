@@ -11,6 +11,7 @@ services:
     depends_on:
       - portfolio
       - pixelquest
+      - manifeste
     logging: &logging-config
       driver: "json-file"
       options:
@@ -31,6 +32,16 @@ services:
     restart: always
     env_file:
       - ./secrets/pixel_quest.env
+    logging: *logging-config
+
+  # Manifeste Navigator
+  manifeste:
+    build: ./manifeste
+    container_name: app-manifeste
+    restart: always
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
     logging: *logging-config
 
   # Portainer
