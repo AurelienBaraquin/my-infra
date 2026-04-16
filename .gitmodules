@@ -7,3 +7,6 @@
 [submodule "manifeste"]
 	path = manifeste
 	url = git@github.com:AurelienBaraquin/Manifeste.git
+[submodule "miku"]
+	path = miku
+	url = git@github.com:AurelienBaraquin/miku-teto-ui.git

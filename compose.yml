@@ -44,6 +44,15 @@ services:
       - PORT=3000
     logging: *logging-config
 
+  miku:
+    build: ./miku
+    container_name: app-miku
+    restart: always
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+    logging: *logging-config
+
   # Portainer
   portainer:
     image: portainer/portainer-ce:latest
