@@ -12,6 +12,7 @@ services:
       - portfolio
       - pixelquest
       - manifeste
+      - miku
     logging: &logging-config
       driver: "json-file"
       options:
