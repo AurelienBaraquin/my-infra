@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    command: serve
+    ports:
+      - "8080:80"
+    volumes:
+      - ./cache:/var/cache/ntfy
+      - ./server.yml:/etc/ntfy/server.yml
+    environment:
+      TZ: UTC

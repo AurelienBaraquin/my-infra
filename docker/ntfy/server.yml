@@ -1,0 +1,28 @@
+# ntfy server configuration
+# See: https://docs.ntfy.sh/config/
+
+# Base URL
+base-url: "http://localhost:8080"
+
+# Listen address (container internal)
+listen-http: ":80"
+
+# Cache
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "12h"
+
+# Attachments
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+attachment-total-size-limit: "500M"
+attachment-file-size-limit: "50M"
+attachment-expiry-duration: "24h"
+
+# Max request size
+max-request-size: "50M"
+
+# Auth: fully open (private Tailscale network)
+auth-default-access: "read-write"
+
+# Logging
+log-level: "info"
+log-format: "json"
