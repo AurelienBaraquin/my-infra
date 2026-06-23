@@ -13,6 +13,7 @@ services:
       - pixelquest
       - manifeste
       - miku
+      - vikunja
     logging: &logging-config
       driver: "json-file"
       options:
@@ -52,6 +53,22 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=3000
+    logging: *logging-config
+
+  # Vikunja (Task Manager)
+  vikunja:
+    image: vikunja/vikunja
+    container_name: vikunja
+    restart: unless-stopped
+    environment:
+      VIKUNJA_SERVICE_PUBLICURL: https://vikunja.aurelienb.com/
+      VIKUNJA_SERVICE_SECRET: ad992a88961803bcdda68676ff06c6804795a7101955c688415a5df6b023c824
+      VIKUNJA_DATABASE_PATH: /db/vikunja.db
+    ports:
+      - "3456:3456"
+    volumes:
+      - ./docker/vikunja/files:/app/vikunja/files
+      - ./docker/vikunja/db:/db
     logging: *logging-config
 
   # Portainer
