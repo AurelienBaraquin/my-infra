@@ -53,17 +53,10 @@ my-infra/
 │   ├── config.yaml
 │   └── README.md
 │
-├── secrets/                 # Environment variables (gitignored)
-│   ├── pixel_quest.env      # GEMINI_API_KEY, TURSO_DATABASE_URL/TOKEN
-│   └── portfolio.env        # (empty, reserved)
-│
-└── internship-research/     # Research docs for alternance search
-    ├── rapport-alternance.md
-    ├── 01-plateformes.md
-    ├── 02-entreprises.md
-    └── 03-epitech.md
+└── secrets/                 # Environment variables (gitignored)
+    ├── pixel_quest.env      # GEMINI_API_KEY, TURSO_DATABASE_URL/TOKEN
+    └── portfolio.env        # (empty, reserved)
 ```
-
 ---
 
 ## Architecture
@@ -362,18 +355,6 @@ This VPS also runs [Hermes Agent](https://hermes-agent.nousresearch.com) — an 
 - **Kanban:** Task orchestration system with profiles (coder, ops, researcher, reviewer, writer)
 - **Phone:** Samsung S23 Ultra via Tailscale SSH (`100.112.201.87`)
 - **ntfy:** Push notifications to phone via self-hosted ntfy
-
----
-
-## Internship research
-
-The `internship-research/` directory contains a comprehensive research document for finding alternance (work-study) opportunities in the PACA region (Avignon/Marseille/Aix-en-Provence).
-
-**Contents:**
-- 19 verified job offers across 5 platforms
-- 30 tech companies identified in PACA
-- Top 5 recommended companies (Capgemini, Sopra Steria, Tweag, Criteo, Thales)
-- Action plan with application priorities and timeline
 
 ---
 
