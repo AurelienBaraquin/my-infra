@@ -10,3 +10,6 @@
 [submodule "miku"]
 	path = miku
 	url = git@github.com:AurelienBaraquin/miku-teto-ui.git
+[submodule "chinese_notebook"]
+	path = chinese_notebook
+	url = git@github.com:AurelienBaraquin/chinese_notebook.git

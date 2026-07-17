@@ -6,14 +6,17 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./.htpasswd:/etc/nginx/.htpasswd
+      - ./ssl/cloudflare/origin-cert.pem:/etc/nginx/ssl/origin-cert.pem:ro
+      - ./ssl/cloudflare/origin-key.pem:/etc/nginx/ssl/origin-key.pem:ro
     depends_on:
       - portfolio
       - pixelquest
-      - manifeste
-      - miku
       - vikunja
+      - chinese_notebook
     logging: &logging-config
       driver: "json-file"
       options:
@@ -69,6 +72,17 @@ services:
     volumes:
       - ./docker/vikunja/files:/app/vikunja/files
       - ./docker/vikunja/db:/db
+    logging: *logging-config
+
+  # Chinese Notebook (Hanzi First)
+  chinese_notebook:
+    build:
+      context: ./chinese_notebook
+      dockerfile: ../docker/chinese_notebook/Dockerfile
+    container_name: app-chinese_notebook
+    restart: always
+    volumes:
+      - ./docker/chinese_notebook/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     logging: *logging-config
 
   # Portainer
