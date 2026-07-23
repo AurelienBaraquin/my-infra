@@ -1,3 +1,7 @@
 secrets/
 .env
 .DS_Store
+
+.htpasswd
+deploy.sh
+ssl/

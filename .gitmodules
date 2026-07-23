@@ -1,6 +1,3 @@
-[submodule "portfolio"]
-	path = portfolio
-	url = https://github.com/AurelienBaraquin/portfolio.git
 [submodule "pixel_quest"]
 	path = pixel_quest
 	url = https://github.com/AurelienBaraquin/pixel_quest.git
@@ -13,3 +10,6 @@
 [submodule "chinese_notebook"]
 	path = chinese_notebook
 	url = git@github.com:AurelienBaraquin/chinese_notebook.git
+[submodule "portfolio"]
+	path = portfolio
+	url = git@github.com:AurelienBaraquin/portfolio_shop.git
