@@ -10,6 +10,7 @@ include:
   - core/compose.yml   # Traefik (edge), socket-proxy, Authelia (SSO)
   - apps/compose.yml   # Sites publics : portfolio, pixel-quest, chinese notebook, démos
   - tools/compose.yml  # Outils perso / admin : Portainer
+  - dashboard/compose.yml  # Dashboard personnel (dash.aurelienb.com, SSO)
 
 # Réseaux : `proxy` est le seul réseau partagé entre Traefik et les services exposés (déclaré
 # dans chaque stack sous le même nom Docker). Tout le reste — bases de données, workers… — reste

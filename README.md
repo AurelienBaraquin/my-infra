@@ -43,6 +43,7 @@
 | PixelQuest (Vite + Express + Gemini) | [aurelienb.com/pixel-quest](https://aurelienb.com/pixel-quest/) | public | `apps` |
 | Sites démo (Caddy, statique) | `aurelienb.com/{restaurant,bijoux,agence,immobilier,medical}/` | public | `apps` |
 | Chinese Notebook (SPA, Caddy) | [chinesenote.aurelienb.com](https://chinesenote.aurelienb.com) | public | `apps` |
+| Dashboard personnel (provisoire) | [dash.aurelienb.com](https://dash.aurelienb.com) | SSO | `dashboard` |
 | Authelia (portail SSO) | [auth.aurelienb.com](https://auth.aurelienb.com) | — | `core` |
 | Dashboard Traefik | [traefik.aurelienb.com](https://traefik.aurelienb.com) | SSO | `core` |
 | Portainer | [portainer.aurelienb.com](https://portainer.aurelienb.com) | SSO + login | `tools` |
@@ -66,10 +67,12 @@ my-infra/
 │   ├── compose.yml
 │   └── demo-sites/Caddyfile
 ├── tools/compose.yml        # outils perso/admin (portainer…)
+├── dashboard/               # dashboard perso (dash.*, SSO) — page provisoire pour l'instant
 ├── scripts/
 │   ├── bootstrap.sh         # .env, dossiers, secrets, compte Authelia (idempotent)
 │   ├── deploy.sh            # aligne sur origin/main + `compose up --build --wait`
 │   └── cloudflare-ips.sh    # resynchronise les plages IP Cloudflare
+├── .github/                 # CI/CD (deploy.yml) + dependabot.yml
 ├── portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/   # sous-modules
 ├── portfolio-sites/         # (hors git) builds des sites démo
 ├── secrets/ data/ ssl/      # (hors git)
@@ -87,7 +90,8 @@ docker compose logs -f traefik      # logs (accès en JSON, erreurs/lentes seule
 ```
 
 Le push sur `main` déclenche `.github/workflows/deploy.yml` : validation de la config
-Compose, puis `scripts/deploy.sh` sur le VPS via SSH.
+Compose, puis `scripts/deploy.sh` sur le VPS via SSH (les PR ne font que la validation).
+Dependabot ouvre chaque semaine une PR groupée quand une image épinglée a une nouvelle version.
 
 ### Ajouter un service
 
