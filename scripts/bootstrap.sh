@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 [[ -f .env ]] || { cp .env.example .env; echo "• .env créé depuis .env.example — à relire"; }
 
-mkdir -p secrets data/authelia
+mkdir -p secrets data/authelia data/dashboard/postgres data/backups
 chmod 700 secrets
 
 gen() {  # gen <fichier> <octets>
@@ -19,7 +19,18 @@ gen() {  # gen <fichier> <octets>
 gen authelia_jwt_secret 64
 gen authelia_session_secret 64
 gen authelia_storage_encryption_key 64
+gen dashboard_db_password 32
+gen dashboard_encryption_key 32
 touch secrets/pixel_quest.env
+
+# URL complète pour l'app (dérivée du mot de passe ; régénérée s'il change).
+url="postgres://dashboard:$(cat secrets/dashboard_db_password)@db:5432/dashboard"
+if [[ ! -s secrets/dashboard_database_url || $(cat secrets/dashboard_database_url) != "$url" ]]; then
+  printf '%s' "$url" > secrets/dashboard_database_url
+  chmod 600 secrets/dashboard_database_url
+fi
+# Secrets Docker Compose = bind mounts : l'app (uid 1000, non-root) doit pouvoir les lire.
+chown 1000:1000 secrets/dashboard_database_url secrets/dashboard_encryption_key
 
 if [[ ! -s secrets/authelia_users.yml ]]; then
   user=${AUTHELIA_USER:-aurelien}

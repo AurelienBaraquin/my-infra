@@ -43,7 +43,7 @@
 | PixelQuest (Vite + Express + Gemini) | [aurelienb.com/pixel-quest](https://aurelienb.com/pixel-quest/) | public | `apps` |
 | Sites démo (Caddy, statique) | `aurelienb.com/{restaurant,bijoux,agence,immobilier,medical}/` | public | `apps` |
 | Chinese Notebook (SPA, Caddy) | [chinesenote.aurelienb.com](https://chinesenote.aurelienb.com) | public | `apps` |
-| Dashboard personnel (provisoire) | [dash.aurelienb.com](https://dash.aurelienb.com) | SSO | `dashboard` |
+| Dashboard — OS personnel ([repo](https://github.com/AurelienBaraquin/dashboard)) | [dash.aurelienb.com](https://dash.aurelienb.com) | SSO, ou jeton API/MCP | `dashboard` |
 | Authelia (portail SSO) | [auth.aurelienb.com](https://auth.aurelienb.com) | — | `core` |
 | Dashboard Traefik | [traefik.aurelienb.com](https://traefik.aurelienb.com) | SSO | `core` |
 | Portainer | [portainer.aurelienb.com](https://portainer.aurelienb.com) | SSO + login | `tools` |
@@ -67,13 +67,14 @@ my-infra/
 │   ├── compose.yml
 │   └── demo-sites/Caddyfile
 ├── tools/compose.yml        # outils perso/admin (portainer…)
-├── dashboard/               # dashboard perso (dash.*, SSO) — page provisoire pour l'instant
+├── dashboard/               # OS perso (dash.*) : app (sous-module) + Postgres 17
 ├── scripts/
 │   ├── bootstrap.sh         # .env, dossiers, secrets, compte Authelia (idempotent)
 │   ├── deploy.sh            # aligne sur origin/main + `compose up --build --wait`
+│   ├── backup.sh            # sauvegarde quotidienne (cron 03:17) → data/backups/, 14 jours
 │   └── cloudflare-ips.sh    # resynchronise les plages IP Cloudflare
 ├── .github/                 # CI/CD (deploy.yml) + dependabot.yml
-├── portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/   # sous-modules
+├── portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/ dashboard/app   # sous-modules
 ├── portfolio-sites/         # (hors git) builds des sites démo
 ├── secrets/ data/ ssl/      # (hors git)
 └── hermes/                  # config Hermes nettoyée (référence)
@@ -120,6 +121,18 @@ Une base de données ou un worker d'un service reste sur le réseau `default` de
   remplacer le hash (rechargé automatiquement).
 - Enrôlement 2FA : pas de SMTP, les codes de vérification sont écrits dans
   `data/authelia/notification.txt`.
+
+## Dashboard (`dashboard/`)
+
+- Code dans [AurelienBaraquin/dashboard](https://github.com/AurelienBaraquin/dashboard)
+  (sous-module `dashboard/app`) ; base PostgreSQL 17 sur un réseau interne sans accès sortant.
+- L'app n'est joignable que par Traefik (réseau dédié `dashboard-edge`) car elle fait confiance
+  à l'en-tête `Remote-User` posé après le SSO (le middleware `sso` supprime d'abord tout
+  `Remote-*` envoyé par le client).
+- Accès machine (scripts, agents, MCP) : `Authorization: Bearer dsh_…` sur `/api/*` et `/mcp`,
+  routé sans SSO et vérifié par l'app. Jetons créés dans l'app (Réglages → API & MCP).
+- Sauvegardes : `scripts/backup.sh` (cron 03:17) → `data/backups/<date>/` (dump Postgres,
+  base Authelia, secrets), 14 jours. ⚠ Même disque que les données : copie hors-site à prévoir.
 
 ## Cloudflare
 

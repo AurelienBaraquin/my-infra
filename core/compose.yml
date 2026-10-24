@@ -63,7 +63,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    networks: [proxy, socket]
+    networks: [proxy, socket, dashboard-edge]
     labels:
       traefik.enable: "true"
       # Dashboard Traefik (lecture seule), derrière le SSO.
@@ -109,6 +109,10 @@ secrets:
 networks:
   proxy:
     name: proxy
+  # Réseau dédié Traefik ↔ dashboard (l'app fait confiance aux en-têtes d'identité posés par
+  # Traefik : aucun autre conteneur ne doit pouvoir la joindre).
+  dashboard-edge:
+    name: dashboard-edge
   # Réseau interne (sans accès Internet) Traefik ↔ socket-proxy uniquement.
   socket:
     internal: true

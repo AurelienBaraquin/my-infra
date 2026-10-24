@@ -55,7 +55,21 @@ http:
           X-Powered-By: ""
 
     # Accès privé : session Authelia obligatoire (politique 2FA dans authelia/configuration.yml).
+    # On retire d'abord tout en-tête d'identité envoyé par le client, puis Authelia pose les vrais :
+    # les services derrière `sso` peuvent donc se fier à Remote-User.
     sso:
+      chain:
+        middlewares: [strip-identity, sso-auth]
+
+    strip-identity:
+      headers:
+        customRequestHeaders:
+          Remote-User: ""
+          Remote-Groups: ""
+          Remote-Email: ""
+          Remote-Name: ""
+
+    sso-auth:
       forwardAuth:
         address: http://authelia:9091/api/authz/forward-auth
         trustForwardHeader: true

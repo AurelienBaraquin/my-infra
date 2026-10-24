@@ -1,39 +1,82 @@
-# Stack "dashboard" : tableau de bord personnel sur dash.aurelienb.com, privé (SSO 2FA).
-# C'est aussi la page d'arrivée d'Authelia après connexion (default_redirection_url).
+# Stack "dashboard" : OS personnel sur dash.aurelienb.com (code : sous-module ./app,
+# repo AurelienBaraquin/dashboard). Page d'arrivée d'Authelia après connexion.
 #
-# Pour l'instant une page provisoire servie par Caddy ; le vrai dashboard remplacera ce
-# service (même nom de router, même middleware). Ses dépendances (base, workers, connecteurs)
-# iront sur le réseau `default` de cette stack, seul le front rejoint `proxy`.
+#   Traefik ──(réseau dédié dashboard-edge)──▶ app ──(réseau privé internal)──▶ db
+#
+# L'app fait confiance à l'en-tête Remote-User posé par Traefik/Authelia : elle n'est donc
+# joignable QUE par Traefik (réseau dédié, pas le réseau `proxy` partagé avec les autres apps).
+
+x-base: &base
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
 
 services:
-  dashboard:
-    image: caddy:2.11.7-alpine
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    cap_drop: [ALL]
-    cap_add: [NET_BIND_SERVICE]
-    mem_limit: 32m
-    command: caddy file-server --root /srv --listen :8080
-    volumes:
-      - ./placeholder:/srv:ro
-    tmpfs: [/data, /config]
-    networks: [proxy]
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+  app:
+    <<: *base
+    build: ./app
+    depends_on:
+      db: { condition: service_healthy }
+    mem_limit: 320m
+    environment:
+      DATABASE_URL_FILE: /run/secrets/dashboard_database_url
+      ENCRYPTION_KEY_FILE: /run/secrets/dashboard_encryption_key
+      PUBLIC_URL: https://dash.${DOMAIN}
+      VAPID_SUBJECT: https://dash.${DOMAIN}
+      TZ: ${TZ}
+    secrets: [dashboard_database_url, dashboard_encryption_key]
+    networks: [internal, dashboard-edge]
     labels:
       traefik.enable: "true"
+      traefik.docker.network: dashboard-edge
+      traefik.http.services.dashboard.loadbalancer.server.port: "3000"
+      # Navigateur : session SSO 2FA obligatoire.
       traefik.http.routers.dashboard.rule: Host(`dash.${DOMAIN}`)
       traefik.http.routers.dashboard.middlewares: sso@file
-      traefik.http.services.dashboard.loadbalancer.server.port: "8080"
+      traefik.http.routers.dashboard.service: dashboard
+      # Scripts / agents (API, MCP) : jeton `Bearer dsh_…` vérifié par l'app, sans SSO.
+      traefik.http.routers.dashboard-token.rule: >-
+        Host(`dash.${DOMAIN}`) && (PathPrefix(`/api/`) || Path(`/mcp`)) &&
+        HeaderRegexp(`Authorization`, `^Bearer dsh_`)
+      traefik.http.routers.dashboard-token.priority: "1000"
+      traefik.http.routers.dashboard-token.middlewares: strip-identity@file
+      traefik.http.routers.dashboard-token.service: dashboard
+
+  db:
+    <<: *base
+    image: postgres:17.11-alpine
+    mem_limit: 256m
+    shm_size: 128m
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=40"]
+    environment:
+      POSTGRES_DB: dashboard
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD_FILE: /run/secrets/dashboard_db_password
+      TZ: ${TZ}
+    secrets: [dashboard_db_password]
+    volumes:
+      - ../data/dashboard/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dashboard -d dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+secrets:
+  dashboard_db_password:
+    file: ../secrets/dashboard_db_password
+  dashboard_database_url:
+    file: ../secrets/dashboard_database_url
+  dashboard_encryption_key:
+    file: ../secrets/dashboard_encryption_key
 
 networks:
-  proxy:
-    name: proxy
+  internal:
+    name: dashboard-internal
+    internal: true  # la base n'a aucun accès réseau sortant
+  dashboard-edge:
+    name: dashboard-edge
