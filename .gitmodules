@@ -13,3 +13,6 @@
 [submodule "portfolio"]
 	path = portfolio
 	url = git@github.com:AurelienBaraquin/portfolio_shop.git
+[submodule "dashboard/app"]
+	path = dashboard/app
+	url = git@github.com:AurelienBaraquin/dashboard.git
