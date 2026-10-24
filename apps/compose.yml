@@ -1,0 +1,109 @@
+# Stack "apps" : sites publics (pas de SSO). Chaque app est un sous-module git à la racine du
+# repo et se déclare auprès de Traefik par ses labels.
+
+x-app: &app
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  networks: [proxy]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+x-healthcheck: &healthcheck
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 30s
+
+services:
+  # aurelienb.com — portfolio (Next.js)
+  portfolio:
+    <<: *app
+    build: ../portfolio
+    mem_limit: 256m
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.portfolio.rule: Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)
+      traefik.http.routers.portfolio.middlewares: www-to-apex@file
+      traefik.http.services.portfolio.loadbalancer.server.port: "3000"
+
+  # aurelienb.com/pixel-quest — console narrative IA (Vite + Express, Gemini)
+  pixelquest:
+    <<: *app
+    build: ../pixel_quest
+    env_file: ../secrets/pixel_quest.env
+    mem_limit: 256m
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/pixel-quest/"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.pixelquest.rule: Host(`${DOMAIN}`) && PathPrefix(`/pixel-quest`)
+      traefik.http.services.pixelquest.loadbalancer.server.port: "3000"
+
+  # aurelienb.com/{restaurant,bijoux,agence,immobilier,medical} — sites démo statiques du
+  # portfolio (builds Vite dans portfolio-sites/*/dist, servis par Caddy).
+  demo-sites:
+    <<: *app
+    image: caddy:2.11.7-alpine
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]  # requis : le binaire caddy porte cette file-capability
+    mem_limit: 64m
+    volumes:
+      - ./demo-sites/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../portfolio-sites:/srv:ro
+    tmpfs: [/data, /config]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.demo-sites.rule: >-
+        Host(`${DOMAIN}`) && (PathPrefix(`/restaurant`) || PathPrefix(`/bijoux`) ||
+        PathPrefix(`/agence`) || PathPrefix(`/immobilier`) || PathPrefix(`/medical`))
+      traefik.http.services.demo-sites.loadbalancer.server.port: "8080"
+
+  # chinesenote.aurelienb.com — Hanzi First (SPA statique, Caddy embarqué dans l'image)
+  chinese-notebook:
+    <<: *app
+    build: ../chinese_notebook
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    mem_limit: 64m
+    tmpfs: [/data, /config]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.chinese-notebook.rule: Host(`chinesenote.${DOMAIN}`)
+      traefik.http.services.chinese-notebook.loadbalancer.server.port: "80"
+
+  # --- Archivés : non démarrés par défaut (`--profile archived` pour les relancer) ---------
+  miku:
+    <<: *app
+    profiles: [archived]
+    build: ../miku
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.miku.rule: Host(`miku.${DOMAIN}`)
+      traefik.http.services.miku.loadbalancer.server.port: "3000"
+
+  manifeste:
+    <<: *app
+    profiles: [archived]
+    build: ../manifeste
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.manifeste.rule: Host(`manifeste.${DOMAIN}`)
+      traefik.http.services.manifeste.loadbalancer.server.port: "3000"
+
+networks:
+  proxy:
+    name: proxy

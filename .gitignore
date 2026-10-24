@@ -1,7 +1,9 @@
-secrets/
+# Jamais versionné : secrets, certificats, données persistantes, config locale.
 .env
+secrets/
+ssl/
+data/
 .DS_Store
 
-.htpasswd
-deploy.sh
-ssl/
+# Sites démo du portfolio : builds locaux (voir portfolio-sites/deploy.sh).
+portfolio-sites/

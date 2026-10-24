@@ -1,0 +1,114 @@
+# Stack "core" : tout ce qui est en bordure (edge) et transverse.
+#
+#   Internet ─▶ Cloudflare (proxy, TLS edge) ─▶ :443 Traefik ─▶ services sur le réseau `proxy`
+#                                                    │
+#                                                    ├─▶ Authelia (forward-auth / SSO 2FA)
+#                                                    └─▶ socket-proxy (lecture seule) ─▶ docker.sock
+#
+# Les services s'auto-déclarent auprès de Traefik via leurs labels Docker : ajouter un service
+# n'impose jamais de toucher à cette stack.
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  # Seul conteneur qui voit le socket Docker. Filtre les appels API (GET en lecture seule sur
+  # containers/events/version) et n'accepte que Traefik : un Traefik compromis ne peut donc ni
+  # lancer de conteneur ni lire les env/secrets d'un autre.
+  socket-proxy:
+    image: wollomatic/socket-proxy:1.13.2
+    <<: *hardening
+    user: "65534:${DOCKER_GID:-111}"
+    read_only: true
+    cap_drop: [ALL]
+    mem_limit: 32m
+    command:
+      - -loglevel=info
+      - -listenip=0.0.0.0
+      - -allowfrom=traefik
+      - -allowGET=/v1\..{1,2}/(version|containers/.*|events.*)|/_ping
+      - -allowHEAD=/_ping
+      - -watchdoginterval=3600
+      - -stoponwatchdog
+      - -shutdowngracetime=5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [socket]
+
+  traefik:
+    image: traefik:v3.7.16
+    <<: *hardening
+    depends_on: [socket-proxy]
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    mem_limit: 128m
+    environment:
+      DOMAIN: ${DOMAIN}
+      TZ: ${TZ}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ../ssl/cloudflare:/certs:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [proxy, socket]
+    labels:
+      traefik.enable: "true"
+      # Dashboard Traefik (lecture seule), derrière le SSO.
+      traefik.http.routers.traefik.rule: Host(`traefik.${DOMAIN}`)
+      traefik.http.routers.traefik.service: api@internal
+      traefik.http.routers.traefik.middlewares: sso@file
+
+  # SSO + 2FA (TOTP / passkeys WebAuthn) pour tout ce qui est privé. Sert aussi de fournisseur
+  # OIDC pour les apps qui le supportent nativement (à brancher au fil de l'eau).
+  authelia:
+    image: authelia/authelia:4.39.28
+    <<: *hardening
+    mem_limit: 128m
+    environment:
+      TZ: ${TZ}
+      X_AUTHELIA_CONFIG_FILTERS: template
+      DOMAIN: ${DOMAIN}
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: /run/secrets/authelia_jwt_secret
+      AUTHELIA_SESSION_SECRET_FILE: /run/secrets/authelia_session_secret
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: /run/secrets/authelia_storage_encryption_key
+    secrets:
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+    volumes:
+      - ./authelia/configuration.yml:/config/configuration.yml:ro
+      - ../secrets/authelia_users.yml:/config/users.yml
+      - ../data/authelia:/data
+    networks: [proxy]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.authelia.rule: Host(`auth.${DOMAIN}`)
+      traefik.http.services.authelia.loadbalancer.server.port: "9091"
+
+secrets:
+  authelia_jwt_secret:
+    file: ../secrets/authelia_jwt_secret
+  authelia_session_secret:
+    file: ../secrets/authelia_session_secret
+  authelia_storage_encryption_key:
+    file: ../secrets/authelia_storage_encryption_key
+
+networks:
+  proxy:
+    name: proxy
+  # Réseau interne (sans accès Internet) Traefik ↔ socket-proxy uniquement.
+  socket:
+    internal: true

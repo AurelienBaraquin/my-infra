@@ -1,0 +1,43 @@
+# Sites démo du portfolio : chaque build Vite (base: '/<slug>/') est servi sous /<slug>/
+# avec repli SPA sur son index.html. TLS/headers globaux gérés par Traefik en amont.
+{
+	admin off
+	auto_https off
+}
+
+(spa) {
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	try_files {path} /index.html
+	file_server
+}
+
+:8080 {
+	encode zstd gzip
+
+	respond /healthz 200
+
+	@noslash path_regexp noslash ^/(restaurant|bijoux|agence|immobilier|medical)$
+	redir @noslash {path}/ 308
+
+	handle_path /restaurant/* {
+		root * /srv/site-01-restaurant/dist
+		import spa
+	}
+	handle_path /bijoux/* {
+		root * /srv/site-02-bijoux/dist
+		import spa
+	}
+	handle_path /agence/* {
+		root * /srv/site-04-agence/dist
+		import spa
+	}
+	handle_path /immobilier/* {
+		root * /srv/site-05-immobilier/dist
+		import spa
+	}
+	handle_path /medical/* {
+		root * /srv/site-06-medical/dist
+		import spa
+	}
+}
