@@ -1,0 +1,39 @@
+# Stack "dashboard" : tableau de bord personnel sur dash.aurelienb.com, privé (SSO 2FA).
+# C'est aussi la page d'arrivée d'Authelia après connexion (default_redirection_url).
+#
+# Pour l'instant une page provisoire servie par Caddy ; le vrai dashboard remplacera ce
+# service (même nom de router, même middleware). Ses dépendances (base, workers, connecteurs)
+# iront sur le réseau `default` de cette stack, seul le front rejoint `proxy`.
+
+services:
+  dashboard:
+    image: caddy:2.11.7-alpine
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    mem_limit: 32m
+    command: caddy file-server --root /srv --listen :8080
+    volumes:
+      - ./placeholder:/srv:ro
+    tmpfs: [/data, /config]
+    networks: [proxy]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: Host(`dash.${DOMAIN}`)
+      traefik.http.routers.dashboard.middlewares: sso@file
+      traefik.http.services.dashboard.loadbalancer.server.port: "8080"
+
+networks:
+  proxy:
+    name: proxy

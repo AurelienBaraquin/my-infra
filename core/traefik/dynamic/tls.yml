@@ -1,0 +1,16 @@
+# TLS origine : certificat "Cloudflare Origin CA" (*.aurelienb.com, valide jusqu'en 2041).
+# Cloudflare termine le TLS public ; ce certificat chiffre le tronçon Cloudflare → VPS
+# (mode SSL "Full (strict)" côté Cloudflare). Fichiers hors git : ssl/cloudflare/.
+tls:
+  certificates:
+    - certFile: /certs/origin-cert.pem
+      keyFile: /certs/origin-key.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/origin-cert.pem
+        keyFile: /certs/origin-key.pem
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: true  # pas de réponse TLS sans SNI valide (scans d'IP directs)

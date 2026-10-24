@@ -1,0 +1,67 @@
+# Middlewares partagés. Les trois premiers sont appliqués globalement sur l'entrypoint
+# `websecure` (cf. traefik.yml) ; les autres s'ajoutent par service via le label
+#   traefik.http.routers.<nom>.middlewares: sso@file
+http:
+  middlewares:
+    # Refuse tout ce qui n'arrive pas par Cloudflare (IP du pair TCP, pas un en-tête falsifiable).
+    # Synchronisé avec traefik.yml par scripts/cloudflare-ips.sh.
+    cloudflare-only:
+      ipAllowList:
+        sourceRange:
+          # BEGIN cloudflare-ips
+          - 173.245.48.0/20
+          - 103.21.244.0/22
+          - 103.22.200.0/22
+          - 103.31.4.0/22
+          - 141.101.64.0/18
+          - 108.162.192.0/18
+          - 190.93.240.0/20
+          - 188.114.96.0/20
+          - 197.234.240.0/22
+          - 198.41.128.0/17
+          - 162.158.0.0/15
+          - 104.16.0.0/13
+          - 104.24.0.0/14
+          - 172.64.0.0/13
+          - 131.0.72.0/22
+          - 2400:cb00::/32
+          - 2606:4700::/32
+          - 2803:f800::/32
+          - 2405:b500::/32
+          - 2405:8100::/32
+          - 2a06:98c0::/29
+          - 2c0f:f248::/32
+          # END cloudflare-ips
+
+    # Limite par IP client réelle (fournie par Cloudflare), large pour ne pas gêner les SPA.
+    rate-limit:
+      rateLimit:
+        average: 50
+        burst: 150
+        period: 1s
+        sourceCriterion:
+          requestHeaderName: CF-Connecting-IP
+
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        contentTypeNosniff: true
+        customFrameOptionsValue: SAMEORIGIN
+        referrerPolicy: strict-origin-when-cross-origin
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        customResponseHeaders:
+          Server: ""
+          X-Powered-By: ""
+
+    # Accès privé : session Authelia obligatoire (politique 2FA dans authelia/configuration.yml).
+    sso:
+      forwardAuth:
+        address: http://authelia:9091/api/authz/forward-auth
+        trustForwardHeader: true
+        maxResponseBodySize: 1048576
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+          - Remote-Email
+          - Remote-Name

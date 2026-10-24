@@ -1,0 +1,36 @@
+# Stack "tools" : outils personnels / d'admin. Ce qui n'a pas sa propre authentification forte
+# passe par le SSO (`sso@file`). Les données persistantes vont dans ../data/<service>/ (hors git)
+# ou dans un volume nommé.
+
+x-tool: &tool
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  networks: [proxy]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  # portainer.aurelienb.com — admin Docker. Accès socket complet : double barrière SSO 2FA +
+  # login Portainer.
+  portainer:
+    <<: *tool
+    image: portainer/portainer-ce:2.45.3-alpine
+    mem_limit: 192m
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.portainer.rule: Host(`portainer.${DOMAIN}`)
+      traefik.http.routers.portainer.middlewares: sso@file
+      traefik.http.services.portainer.loadbalancer.server.port: "9000"
+
+volumes:
+  portainer_data:
+    name: my-infra_portainer_data  # volume existant, conservé tel quel
+
+networks:
+  proxy:
+    name: proxy
