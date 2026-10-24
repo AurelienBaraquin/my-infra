@@ -1,27 +1,38 @@
-name: Deploy to VPS
+name: Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
-    
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate compose
+        run: |
+          cp .env.example .env
+          mkdir -p secrets ssl/cloudflare
+          touch secrets/{authelia_jwt_secret,authelia_session_secret,authelia_storage_encryption_key,pixel_quest.env}
+          docker compose config --quiet
+
+  deploy:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3 
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/my-infra
-
-            git pull
-            git submodule update --remote --merge
-            docker compose up -d --build
-            docker image prune -f
-            
-            echo "✅ Déploiement terminé !"
+          command_timeout: 30m
+          script: ~/my-infra/scripts/deploy.sh

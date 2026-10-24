@@ -1,0 +1,64 @@
+# Authelia — SSO + 2FA devant tout ce qui est privé.
+# Rendu via le filtre "template" (X_AUTHELIA_CONFIG_FILTERS) : {{ env "DOMAIN" }} vient du .env.
+# Les secrets ne sont jamais ici : ils arrivent par AUTHELIA_*_FILE (Docker secrets, cf. compose).
+
+theme: auto
+
+server:
+  address: tcp://0.0.0.0:9091
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+
+log:
+  level: info
+
+totp:
+  issuer: '{{ env "DOMAIN" }}'
+
+webauthn:
+  display_name: '{{ env "DOMAIN" }}'
+  enable_passkey_login: true
+
+authentication_backend:
+  file:
+    path: /config/users.yml
+    watch: true
+    password:
+      algorithm: argon2
+  password_reset:
+    disable: true  # compte unique : réinitialisation en éditant secrets/authelia_users.yml
+
+access_control:
+  default_policy: deny
+  rules:
+    # Tout sous-domaine qui passe par le middleware `sso@file` exige un second facteur.
+    - domain: '*.{{ env "DOMAIN" }}'
+      policy: two_factor
+
+session:
+  name: authelia_session
+  same_site: lax
+  inactivity: 2h
+  expiration: 12h
+  remember_me: 1M
+  cookies:
+    - domain: '{{ env "DOMAIN" }}'
+      authelia_url: 'https://auth.{{ env "DOMAIN" }}'
+      default_redirection_url: 'https://dash.{{ env "DOMAIN" }}'
+
+regulation:
+  max_retries: 5
+  find_time: 10m
+  ban_time: 1h
+
+storage:
+  local:
+    path: /data/db.sqlite3
+
+notifier:
+  # Pas de SMTP pour l'instant : les codes de vérification (enrôlement TOTP / passkey) sont
+  # écrits dans data/authelia/notification.txt sur le VPS.
+  filesystem:
+    filename: /data/notification.txt

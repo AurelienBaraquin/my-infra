@@ -1,0 +1,11 @@
+# PR automatiques quand une image épinglée (compose) ou une action GitHub a une nouvelle version.
+version: 2
+updates:
+  - package-ecosystem: docker-compose
+    directories: ["/core", "/apps", "/tools", "/dashboard"]
+    schedule: { interval: weekly, day: monday }
+    groups:
+      images: { patterns: ["*"], update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
