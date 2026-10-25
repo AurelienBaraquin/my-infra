@@ -10,7 +10,9 @@
     "pixel_quest",
     "chinese_notebook",
     "miku",
-    "manifeste"
+    "manifeste",
+    "docs/",
+    ".assistant/"
   ],
   "ignorePaths": [
     "^(secrets|data|ssl|portfolio-sites)/",
