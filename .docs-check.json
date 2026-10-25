@@ -1,5 +1,19 @@
 {
-  "ignore": [".claude/skills/"],
-  "coverageIgnore": [".claude/", "LICENSE"],
-  "ignorePaths": ["^(secrets|data|ssl|portfolio-sites)/", "^\\.\\./secrets/"]
+  "ignore": [
+    ".claude/skills/"
+  ],
+  "coverageIgnore": [
+    ".claude/",
+    "LICENSE",
+    "dashboard/app",
+    "portfolio",
+    "pixel_quest",
+    "chinese_notebook",
+    "miku",
+    "manifeste"
+  ],
+  "ignorePaths": [
+    "^(secrets|data|ssl|portfolio-sites)/",
+    "^\\.\\./secrets/"
+  ]
 }

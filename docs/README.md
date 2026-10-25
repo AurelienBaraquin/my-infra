@@ -9,7 +9,9 @@ La colonne **Covers** (nom imposé par le script) liste, en code, les chemins qu
 `scripts/check-docs.mjs` s'en sert : un dossier de premier niveau, fichier Compose, pipeline CI ou
 `.env.example` qu'aucun document ne couvre est une erreur ; un document dont les chemins couverts
 changent sans lui est signalé comme peut-être périmé. Les applications en sous-module ont leur
-propre documentation dans leur dépôt (celle du dashboard : `dashboard/app/docs/`).
+propre documentation dans leur dépôt (celle du dashboard : `dashboard/app/docs/`) ; leurs chemins
+sont exclus du contrôle (`coverageIgnore` dans `.docs-check.json`), sans quoi chaque bump de version
+signalerait un document « périmé ».
 
 | Document | Ce qu'il répond | Covers | Mettre à jour quand |
 |---|---|---|---|
