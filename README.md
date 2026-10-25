@@ -3,38 +3,6 @@
 > Infrastructure-as-code du VPS [aurelienb.com](https://aurelienb.com) — Docker Compose,
 > Traefik v3, SSO Authelia, derrière Cloudflare.
 
-## Architecture
-
-```
- Navigateur ──HTTPS──▶ Cloudflare (DNS proxied, TLS public, WAF)
-                            │  TLS "Full (strict)" — certificat Cloudflare Origin CA
-                            ▼
-                 ┌──────────────────────┐   réseau interne `socket`
- VPS :80/:443 ──▶│  Traefik v3 (edge)   │◀──────────────▶ socket-proxy ──▶ docker.sock (RO)
-                 │  • n'accepte QUE les │
-                 │    IP Cloudflare     │   forward-auth
-                 │  • rate-limit/headers│◀──────────────▶ Authelia (SSO + 2FA / passkeys)
-                 └──────────┬───────────┘
-                            │ réseau `proxy` (seul réseau partagé)
-      ┌──────────┬──────────┼────────────┬──────────────────┐
-      ▼          ▼          ▼            ▼                  ▼
-  portfolio  pixelquest  demo-sites  chinese-notebook   portainer (SSO)
-```
-
-**Principes**
-
-- **Routage déclaratif** : chaque service se déclare avec ses labels Docker
-  (`traefik.http.routers.<nom>.rule`). Ajouter un service = l'ajouter dans une stack, rien à
-  toucher côté proxy.
-- **Privé par défaut pour les outils** : `traefik.http.routers.<nom>.middlewares: sso@file`
-  place n'importe quel service derrière Authelia (2FA obligatoire).
-- **Défense en profondeur** : accès direct à l'IP du VPS refusé (allowlist Cloudflare, SNI
-  strict), socket Docker jamais exposé à Traefik (socket-proxy filtrant en lecture seule),
-  conteneurs `no-new-privileges`, `read_only`/`cap_drop` quand possible, limites mémoire.
-- **Rien de sensible dans git** : secrets générés dans `secrets/` (Docker secrets),
-  données dans `data/`, certificats dans `ssl/`.
-- **Versions épinglées** : images à version exacte, sous-modules à commit exact.
-
 ## Services
 
 | Service | URL | Accès | Stack |
@@ -49,98 +17,28 @@
 | Portainer | [portainer.aurelienb.com](https://portainer.aurelienb.com) | SSO + login | `tools` |
 | Miku, Manifeste | — | archivés (`--profile archived`) | `apps` |
 
-Hors compose : l'agent **Hermes** tourne directement sur l'hôte (config de référence dans
+Hors Compose : l'agent **Hermes** tourne directement sur l'hôte (config de référence dans
 `hermes/`).
 
-## Arborescence
+## Démarrer
 
-```
-my-infra/
-├── compose.yml              # point d'entrée : `include` des stacks ci-dessous
-├── .env.example             # DOMAIN, TZ, DOCKER_GID → copier en .env
-├── core/                    # edge + transverse
-│   ├── compose.yml          #   traefik, socket-proxy, authelia
-│   ├── traefik/traefik.yml  #   config statique (entrypoints, providers, IP Cloudflare)
-│   ├── traefik/dynamic/     #   TLS, middlewares partagés, redirections (rechargés à chaud)
-│   └── authelia/configuration.yml
-├── apps/                    # sites publics
-│   ├── compose.yml
-│   └── demo-sites/Caddyfile
-├── tools/compose.yml        # outils perso/admin (portainer…)
-├── dashboard/               # OS perso (dash.*) : app (sous-module) + Postgres 17
-├── scripts/
-│   ├── bootstrap.sh         # .env, dossiers, secrets, compte Authelia (idempotent)
-│   ├── deploy.sh            # aligne sur origin/main + `compose up --build --wait`
-│   ├── backup.sh            # sauvegarde quotidienne (cron 03:17) → data/backups/, 14 jours
-│   └── cloudflare-ips.sh    # resynchronise les plages IP Cloudflare
-├── .github/                 # CI/CD (deploy.yml) + dependabot.yml
-├── portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/ dashboard/app   # sous-modules
-├── portfolio-sites/         # (hors git) builds des sites démo
-├── secrets/ data/ ssl/      # (hors git)
-└── hermes/                  # config Hermes nettoyée (référence)
-```
-
-## Utilisation
+Prérequis : un VPS avec Docker 29+ et Compose v2.20+, accès SSH au compte GitHub (sous-modules
+privés), le certificat Cloudflare Origin CA dans `ssl/cloudflare/`.
 
 ```bash
-./scripts/bootstrap.sh              # 1re fois (ou après un clone) : secrets + compte SSO
-docker compose up -d --build        # tout démarrer
-docker compose ps                   # état + healthchecks
-docker compose logs -f traefik      # logs (accès en JSON, erreurs/lentes seulement)
-./scripts/deploy.sh                 # déploiement complet depuis origin/main
+git clone --recurse-submodules git@github.com:AurelienBaraquin/my-infra.git && cd my-infra
+git config core.hooksPath .githooks   # hooks : format des commits + vérification de la doc
+./scripts/bootstrap.sh                # .env, dossiers, secrets, compte SSO (idempotent)
+docker compose up -d --build --wait   # tout démarrer
+docker compose ps                     # état et healthchecks
 ```
 
-Le push sur `main` déclenche `.github/workflows/deploy.yml` : validation de la config
-Compose, puis `scripts/deploy.sh` sur le VPS via SSH (les PR ne font que la validation).
-Dependabot ouvre chaque semaine une PR groupée quand une image épinglée a une nouvelle version.
+Ensuite, chaque push sur `main` redéploie (`docs/deployment.md`).
 
-### Ajouter un service
+## Documentation
 
-```yaml
-# dans apps/compose.yml (public) ou tools/compose.yml (privé)
-  mon-service:
-    image: ghcr.io/moi/mon-service:1.2.3
-    restart: unless-stopped
-    networks: [proxy]
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.mon-service.rule: Host(`mon-service.${DOMAIN}`)
-      traefik.http.routers.mon-service.middlewares: sso@file   # ← pour le rendre privé
-      traefik.http.services.mon-service.loadbalancer.server.port: "8080"
-```
-
-Une base de données ou un worker d'un service reste sur le réseau `default` de sa stack
-(pas sur `proxy`).
-
-### SSO (Authelia)
-
-- Compte unique dans `secrets/authelia_users.yml` (mot de passe initial :
-  `secrets/authelia_initial_password`, à changer).
-- Changer le mot de passe :
-  `docker run --rm authelia/authelia:4.39.28 authelia crypto hash generate argon2` puis
-  remplacer le hash (rechargé automatiquement).
-- Enrôlement 2FA : pas de SMTP, les codes de vérification sont écrits dans
-  `data/authelia/notification.txt`.
-
-## Dashboard (`dashboard/`)
-
-- Code dans [AurelienBaraquin/dashboard](https://github.com/AurelienBaraquin/dashboard)
-  (sous-module `dashboard/app`) ; base PostgreSQL 17 sur un réseau interne sans accès sortant.
-- L'app n'est joignable que par Traefik (réseau dédié `dashboard-edge`) car elle fait confiance
-  à l'en-tête `Remote-User` posé après le SSO (le middleware `sso` supprime d'abord tout
-  `Remote-*` envoyé par le client).
-- Accès machine (scripts, agents, MCP) : `Authorization: Bearer dsh_…` sur `/api/*` et `/mcp`,
-  routé sans SSO et vérifié par l'app. Jetons créés dans l'app (Réglages → API & MCP).
-- Sauvegardes : `scripts/backup.sh` (cron 03:17) → `data/backups/<date>/` (dump Postgres,
-  base Authelia, secrets), 14 jours. ⚠ Même disque que les données : copie hors-site à prévoir.
-
-## Cloudflare
-
-- DNS : enregistrements **proxied** (nuage orange) pointant vers le VPS.
-- SSL/TLS : mode **Full (strict)** ; certificat d'origine dans `ssl/cloudflare/`
-  (`*.aurelienb.com`, expire en 2041).
-- Les plages IP Cloudflare sont codées dans Traefik : les resynchroniser de temps en temps
-  avec `./scripts/cloudflare-ips.sh && docker compose restart traefik`.
+Index : [`docs/README.md`](docs/README.md). À lire d'abord : [`docs/brief.md`](docs/brief.md) et
+[`docs/architecture.md`](docs/architecture.md). Règles de travail des agents : [`CLAUDE.md`](CLAUDE.md).
 
 ## Licence
 

@@ -1,0 +1,69 @@
+# Exploitation
+
+Santé, logs, sauvegardes, comptes et pannes connues. Pour qui surveille ou dépanne le VPS.
+Commandes à lancer dans `~/my-infra`.
+
+## Santé et logs
+
+- `docker compose ps` : tous les services avec healthcheck doivent être `healthy` (Portainer et
+  socket-proxy n'en ont pas).
+- `docker compose logs -f <service>` ; rotation 3 × 10 Mo par conteneur.
+- Traefik : journal d'accès JSON limité aux erreurs (4xx/5xx) et aux requêtes de plus de 2 s ;
+  tableau de bord sur `https://traefik.aurelienb.com` (SSO).
+- Mémoire : `docker stats --no-stream` (VPS de 2 Go, swap de 3 Go).
+
+## Sauvegardes
+
+`scripts/backup.sh`, cron root `17 3 * * *`, journal `data/backups/backup.log`. Chaque jour,
+`data/backups/<AAAA-MM-JJ>/` contient :
+
+| Fichier | Contenu |
+|---|---|
+| `dashboard.dump` | `pg_dump --format=custom` de la base du dashboard |
+| `authelia.sqlite3` | base Authelia (2FA enregistrés, réglages) |
+| `secrets.tar.gz` | le dossier `secrets/` |
+
+Rétention 14 jours. **Même disque que les données** : aucune copie hors du VPS pour l'instant.
+Restauration du dashboard : `dashboard/app/docs/operations.md`. Authelia : arrêter le service,
+remplacer `data/authelia/db.sqlite3`, redémarrer.
+
+## Compte SSO (Authelia)
+
+- Compte unique dans `secrets/authelia_users.yml` ; mot de passe initial dans
+  `secrets/authelia_initial_password` (à changer, puis supprimer ce fichier).
+- Changer le mot de passe :
+  `docker run --rm authelia/authelia:4.39.28 authelia crypto hash generate argon2`, remplacer le
+  hash dans le fichier (rechargé automatiquement).
+- Pas de SMTP : les codes de vérification (enrôlement TOTP / passkey) sont écrits dans
+  `data/authelia/notification.txt`.
+- 5 échecs en 10 min bannissent l'IP pendant 1 h.
+
+## DNS (Cloudflare)
+
+Zone `aurelienb.com`, enregistrements **proxied**. Sous-domaines en place : apex, `www`, `auth`,
+`traefik`, `dash`, `portainer`, `chinesenote`, `miku`, `manifeste`, `onlyfans` (redirection). Un
+jeton API (droits DNS) est dans `secrets/cloudflare_api_token` :
+
+```bash
+T=$(cat secrets/cloudflare_api_token); Z=be780c5fd5a9b862f77c62d5090cde0c
+curl -s -X POST -H "Authorization: Bearer $T" -H 'Content-Type: application/json' \
+  https://api.cloudflare.com/client/v4/zones/$Z/dns_records \
+  -d '{"type":"CNAME","name":"nouveau","content":"aurelienb.com","proxied":true}'
+```
+
+## Tâches périodiques
+
+| Quand | Quoi |
+|---|---|
+| Chaque nuit | Sauvegarde (cron) |
+| Chaque semaine | Revoir les PR Dependabot (images épinglées) |
+| De temps en temps | `./scripts/cloudflare-ips.sh && docker compose restart traefik` (plages IP Cloudflare) |
+
+## Pannes connues
+
+| Symptôme | Cause | Remède |
+|---|---|---|
+| Un service ignore une modification de sa config, ou devient `unhealthy` après un déploiement | Fichier ou dossier monté en bind remplacé par git | `docker compose up -d --force-recreate <service>` (fait automatiquement par `scripts/deploy.sh` pour les stacks modifiées) |
+| 403 sur tous les sites | Plages IP Cloudflare changées, ou enregistrement DNS passé en « DNS only » | `./scripts/cloudflare-ips.sh && docker compose restart traefik` ; vérifier le nuage orange |
+| Le dashboard redémarre en boucle (`EACCES /run/secrets/…`) | Secrets non lisibles par l'uid 1000 | `./scripts/bootstrap.sh` puis `docker compose up -d app` |
+| `exec /usr/bin/caddy: operation not permitted` | `cap_drop: [ALL]` sans `NET_BIND_SERVICE` | Ajouter `cap_add: [NET_BIND_SERVICE]` |
