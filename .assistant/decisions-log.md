@@ -17,3 +17,5 @@ Choix trop petits pour un ADR mais à retenir. Entrées les plus récentes en ba
 - 2026-10-24 — DNS : `auth`, `traefik`, `dash` créés en CNAME proxied vers l'apex ; `legacy`, `monitoring`, `vikunja` supprimés — services disparus.
 - 2026-10-24 — Sauvegardes locales quotidiennes, 14 jours — premier niveau en attendant une copie hors du VPS (question ouverte).
 - 2026-10-25 — Documentation selon le claude-project-kit, en français, sans entretien — autonomie donnée par Aurélien ; attribution IA conservée dans les commits.
+- 2026-10-25 — Sauvegardes gardées en local pour l'instant ; copie hors-site suivie dans l'issue #4 — choix d'Aurélien.
+- 2026-10-25 — Utilisateur `gha-runner` et `/home/gha-runner` supprimés — runner GitHub jamais configuré, reste du projet legacy ; accord d'Aurélien.

@@ -55,4 +55,4 @@ Hors périmètre :
 
 ## Questions ouvertes
 
-- Copie des sauvegardes hors du VPS : destination (stockage objet, autre machine) — Aurélien.
+- Copie des sauvegardes hors du VPS : reportée par Aurélien le 2026-10-25, suivie dans l'issue AurelienBaraquin/my-infra#4.
