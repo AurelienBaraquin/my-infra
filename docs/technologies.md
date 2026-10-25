@@ -47,6 +47,14 @@ Administration Docker (`tools/compose.yml`), volume `my-infra_portainer_data`, d
 Base du dashboard (`dashboard/compose.yml`), réseau interne sans accès sortant,
 `shared_buffers=64MB`, données dans `data/dashboard/postgres/`.
 
+## Cloudflare Email Routing + Email Workers
+
+Réception de `inbox@aurelienb.com` et transmission au dashboard (`cloudflare/email-worker/`,
+`scripts/cloudflare-email.sh`, API Cloudflare : `email/routing/enable`, `workers/scripts`,
+`email/routing/rules`). Pièges : activer Email Routing remplace les MX de l'apex ; un Worker
+d'e-mail n'a pas de nouvelle tentative — en cas d'échec il refuse le mail (ou le fait suivre à
+`FALLBACK`). ADR : `dashboard/app/docs/adr/0010-google-oauth-outlook-by-mail-routing.md`.
+
 ## GitHub Actions + Dependabot
 
 Déploiement par SSH, validation Compose, vérification de la doc, mises à jour d'images

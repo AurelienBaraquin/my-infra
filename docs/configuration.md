@@ -25,7 +25,7 @@ un avertissement.
 | `dashboard_database_url` | app du dashboard (dérivée du mot de passe) | à chaque bootstrap si différente ; `chown 1000` |
 | `dashboard_encryption_key` | app du dashboard (chiffrement des identifiants) | 32 octets hex ; `chown 1000` |
 | `pixel_quest.env` | PixelQuest (`API_KEY`, `TURSO_DATABASE_URL`, `TURSO_DATABASE_TOKEN`) | à remplir à la main |
-| `cloudflare_api_token` | opérations DNS manuelles (`docs/operations.md`) | à la main |
+| `cloudflare_api_token` | opérations DNS, `scripts/cloudflare-email.sh` (droits : DNS, Email Routing, Workers Scripts) | à la main |
 
 `scripts/bootstrap.sh` ne régénère jamais un secret existant. Variables de bootstrap facultatives :
 `AUTHELIA_USER`, `AUTHELIA_DISPLAYNAME`, `AUTHELIA_EMAIL`.
