@@ -20,7 +20,7 @@ signalerait un document « périmé ».
 | [security.md](security.md) | Exposition, contrôle d'accès, secrets, données personnelles | `core/` | une règle d'exposition, d'accès ou de secret change |
 | [configuration.md](configuration.md) | Variables `.env`, secrets, fichiers de configuration | `.env.example` `scripts/bootstrap.sh` `core/traefik/` `core/authelia/` | une variable, un secret ou un fichier de config change |
 | [deployment.md](deployment.md) | Déploiement continu, publier une app, revenir en arrière, nouveau VPS | `scripts/deploy.sh` `.gitmodules` | une étape de déploiement change |
-| [operations.md](operations.md) | Santé, logs, sauvegardes, compte SSO, DNS, pannes connues | `scripts/backup.sh` `scripts/cloudflare-ips.sh` | une sonde, la sauvegarde, une procédure ou un runbook change |
+| [operations.md](operations.md) | Santé, logs, sauvegardes, compte SSO, DNS, réception des mails, pannes connues | `scripts/backup.sh` `scripts/cloudflare-ips.sh` `scripts/cloudflare-email.sh` `cloudflare/` | une sonde, la sauvegarde, une procédure ou un runbook change |
 | [ci.md](ci.md) | Pipelines, Dependabot, hooks locaux | `.github/` `.githooks/` | un workflow, un déclencheur ou un hook change |
 | [technologies.md](technologies.md) | Rôle, configuration et pièges de chaque brique | `core/compose.yml` `apps/compose.yml` `tools/compose.yml` `dashboard/compose.yml` | une brique est ajoutée, remplacée ou reconfigurée |
 | [../README.md](../README.md) | Services en ligne et démarrage | `README.md` | un service ou une étape de démarrage change |

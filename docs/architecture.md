@@ -34,7 +34,8 @@ core/                     bordure et transverse : traefik, socket-proxy, autheli
 apps/                     sites publics (+ demo-sites/Caddyfile)
 tools/                    outils d'admin (Portainer)
 dashboard/                OS personnel : compose.yml + sous-module app/ (AurelienBaraquin/dashboard)
-scripts/                  bootstrap, déploiement, sauvegarde, IP Cloudflare, vérification de la doc
+scripts/                  bootstrap, déploiement, sauvegarde, IP Cloudflare, réception des mails, vérification de la doc
+cloudflare/email-worker/  Email Worker « dashboard-inbox » : inbox@aurelienb.com → dashboard
 hermes/                   config de référence (nettoyée) de l'agent Hermes, qui tourne sur l'hôte
 portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/   sous-modules des applications
 docs/ .assistant/         documentation, journal de décisions, leçons
@@ -43,6 +44,10 @@ docs/ .assistant/         documentation, journal de décisions, leçons
 
 Hors git (`.gitignore`) : `secrets/` (secrets générés), `data/` (données persistantes et
 sauvegardes), `ssl/` (certificat d'origine), `portfolio-sites/` (builds des sites démo).
+
+Hors VPS, chez Cloudflare (décrit et déployé depuis ce dépôt par `scripts/cloudflare-email.sh`) :
+Email Routing de la zone, règle `inbox@aurelienb.com` → Worker `dashboard-inbox` → `POST
+https://dash.aurelienb.com/api/ingest/email` (jeton du dashboard limité à `ingest:email`).
 
 ## 3. Conventions en place
 

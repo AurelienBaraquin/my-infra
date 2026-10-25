@@ -41,7 +41,8 @@ remplacer `data/authelia/db.sqlite3`, redémarrer.
 
 ## DNS (Cloudflare)
 
-Zone `aurelienb.com`, enregistrements **proxied**. Sous-domaines en place : apex, `www`, `auth`,
+Zone `aurelienb.com`, enregistrements **proxied** ; MX et SPF de l'apex gérés par Cloudflare Email
+Routing (ne pas les modifier à la main). Sous-domaines en place : apex, `www`, `auth`,
 `traefik`, `dash`, `portainer`, `chinesenote`, `miku`, `manifeste`, `onlyfans` (redirection). Un
 jeton API (droits DNS) est dans `secrets/cloudflare_api_token` :
 
@@ -51,6 +52,19 @@ curl -s -X POST -H "Authorization: Bearer $T" -H 'Content-Type: application/json
   https://api.cloudflare.com/client/v4/zones/$Z/dns_records \
   -d '{"type":"CNAME","name":"nouveau","content":"aurelienb.com","proxied":true}'
 ```
+
+## Réception des mails (`inbox@aurelienb.com`)
+
+Les comptes Outlook (écoles, perso) transfèrent leurs mails vers `inbox@aurelienb.com` : Cloudflare
+Email Routing → Worker `dashboard-inbox` (`cloudflare/email-worker/worker.js`) → dashboard.
+
+- (Ré)installer, renouveler le jeton ou redéployer le Worker : `./scripts/cloudflare-email.sh`
+  (idempotent). `FALLBACK=<adresse vérifiée> ./scripts/cloudflare-email.sh` fait suivre les mails
+  vers cette adresse quand le dashboard est injoignable (adresse à vérifier d'abord dans Cloudflare
+  → Email → Destination addresses) ; sans elle, le mail est refusé et l'expéditeur reçoit un
+  rapport de non-remise.
+- Diagnostic : Cloudflare → Email → Email Routing → Activity log ; logs du Worker (Workers →
+  `dashboard-inbox` → Logs) ; côté dashboard `docker compose logs app | grep "mail importé"`.
 
 ## Tâches périodiques
 
@@ -68,3 +82,4 @@ curl -s -X POST -H "Authorization: Bearer $T" -H 'Content-Type: application/json
 | 403 sur tous les sites | Plages IP Cloudflare changées, ou enregistrement DNS passé en « DNS only » | `./scripts/cloudflare-ips.sh && docker compose restart traefik` ; vérifier le nuage orange |
 | Le dashboard redémarre en boucle (`EACCES /run/secrets/…`) | Secrets non lisibles par l'uid 1000 | `./scripts/bootstrap.sh` puis `docker compose up -d app` |
 | `exec /usr/bin/caddy: operation not permitted` | `cap_drop: [ALL]` sans `NET_BIND_SERVICE` | Ajouter `cap_add: [NET_BIND_SERVICE]` |
+| Les mails transférés n'arrivent plus | Jeton du Worker révoqué, dashboard injoignable, ou transfert bloqué côté école | Activity log Cloudflare ; `./scripts/cloudflare-email.sh` ; rapport de non-remise dans la boîte d'origine |

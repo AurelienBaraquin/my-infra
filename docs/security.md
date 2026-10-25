@@ -15,6 +15,10 @@ Modèle de sécurité du VPS : ce qui est exposé, comment l'accès est contrôl
 - TLS : public chez Cloudflare ; Cloudflare → VPS en « Full (strict) » avec le certificat Origin
   CA (`*.aurelienb.com`, expire en 2041), TLS 1.2 minimum.
 
+- Mail : `inbox@aurelienb.com` reçoit le courrier de n'importe qui (Cloudflare Email Routing,
+  contrôles SPF/DKIM de Cloudflare) ; le Worker le dépose dans le dashboard avec un jeton limité à
+  `ingest:email` (il ne peut appeler aucune autre route). Le contenu des mails n'est jamais exécuté.
+
 ## Contrôle d'accès
 
 - Services privés (Portainer, tableau de bord Traefik, dashboard) : middleware `sso@file` =
