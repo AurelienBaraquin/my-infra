@@ -21,3 +21,8 @@ Erreurs commises (par une personne ou un agent IA) et ce qui les empêche désor
 - 2026-10-24 — Le lockfile du front de pixel_quest est désynchronisé (Tailwind 3 contre 4) et
   casse `npm ci` — détecté au build — `npm install` dans son Dockerfile ; problème ouvert dans le
   dépôt pixel_quest (régénérer le lockfile).
+- 2026-10-25 — Des modifications non commitées dans `~/my-infra` ont été effacées : chaque push sur
+  `main` lance `scripts/deploy.sh`, qui fait `git reset --hard origin/main` dans ce même dossier —
+  détecté quand un changement de `docs/README.md` a disparu entre l'édition et le commit — ne
+  jamais pousser tant qu'il reste des modifications locales dans `~/my-infra` (commiter tout
+  d'abord), ou travailler dans un autre clone ; attendre la fin du déploiement avant d'éditer.

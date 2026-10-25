@@ -16,7 +16,7 @@ signalerait un document « périmé ».
 | Document | Ce qu'il répond | Covers | Mettre à jour quand |
 |---|---|---|---|
 | [brief.md](brief.md) | Quoi et pourquoi : objectif, périmètre, priorités, critères de réussite | l'intention du dépôt | le périmètre ou les priorités changent |
-| [architecture.md](architecture.md) | Organisation, réseaux, conventions, ajouter un service | `compose.yml` `apps/` `tools/` `dashboard/` `hermes/` `portfolio/` `pixel_quest/` `chinese_notebook/` `miku/` `manifeste/` `docs/` `.assistant/` | une stack, un service, un réseau ou une convention change |
+| [architecture.md](architecture.md) | Organisation, réseaux, conventions, ajouter un service | `compose.yml` `apps/` `tools/` `dashboard/compose.yml` `hermes/` | une stack, un service, un réseau ou une convention change |
 | [security.md](security.md) | Exposition, contrôle d'accès, secrets, données personnelles | `core/` | une règle d'exposition, d'accès ou de secret change |
 | [configuration.md](configuration.md) | Variables `.env`, secrets, fichiers de configuration | `.env.example` `scripts/bootstrap.sh` `core/traefik/` `core/authelia/` | une variable, un secret ou un fichier de config change |
 | [deployment.md](deployment.md) | Déploiement continu, publier une app, revenir en arrière, nouveau VPS | `scripts/deploy.sh` `.gitmodules` | une étape de déploiement change |
