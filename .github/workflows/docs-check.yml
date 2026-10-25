@@ -1,0 +1,30 @@
+name: docs-check
+
+# Documentation is validated even when code is not touched: broken links, cited paths that no
+# longer exist, malformed or misnumbered ADRs.
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+      - '.assistant/**'
+      - 'scripts/check-docs.mjs'
+      - '.docs-check.json'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+      - '.assistant/**'
+      - 'scripts/check-docs.mjs'
+      - '.docs-check.json'
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/check-docs.mjs

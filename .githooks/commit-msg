@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Rejette les messages de commit hors Conventional Commits. Activer avec :
+#   git config core.hooksPath .githooks
+set -euo pipefail
+
+subject="$(head -n 1 "$1")"
+conventional='^(feat|fix|chore|docs|test|refactor|ci|perf|build|revert)(\([a-z0-9._/-]+\))?!?: .+'
+if [[ ! "$subject" =~ $conventional ]] && [[ ! "$subject" =~ ^(Merge|Revert|fixup!|squash!) ]]; then
+  echo "commit-msg: le sujet doit suivre Conventional Commits, ex. 'feat(tasks): add reminders'." >&2
+  exit 1
+fi

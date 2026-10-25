@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Runs the documentation check before every commit, so drift (a renamed file the docs still cite,
+# a broken link, a malformed ADR) is caught when it is introduced, not weeks later.
+# Emergency bypass for one commit: SKIP_DOCS_CHECK=1 git commit ...
+set -euo pipefail
+
+script="scripts/check-docs.mjs"
+
+[ "${SKIP_DOCS_CHECK:-}" = "1" ] && exit 0
+[ -f "$script" ] || exit 0
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found, documentation check skipped." >&2
+  exit 0
+fi
+
+node "$script"

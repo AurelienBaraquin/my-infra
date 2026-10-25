@@ -1,0 +1,5 @@
+{
+  "ignore": [".claude/skills/"],
+  "coverageIgnore": [".claude/", "LICENSE"],
+  "ignorePaths": ["^(secrets|data|ssl|portfolio-sites)/", "^\\.\\./secrets/"]
+}
