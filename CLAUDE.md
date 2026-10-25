@@ -95,6 +95,4 @@ Ne décrire que ce qui existe. En cas de doute, l'écrire dans *Questions ouvert
 
 ## 6. Questions ouvertes
 
-- Copie des sauvegardes hors du VPS : destination à choisir — Aurélien.
-- `/home/gha-runner/actions-runner` : runner GitHub jamais configuré, probablement un reste du
-  projet legacy ; à supprimer ? — Aurélien.
+- Copie des sauvegardes hors du VPS : reportée, suivie dans l'issue AurelienBaraquin/my-infra#4.

@@ -23,7 +23,8 @@ Commandes à lancer dans `~/my-infra`.
 | `authelia.sqlite3` | base Authelia (2FA enregistrés, réglages) |
 | `secrets.tar.gz` | le dossier `secrets/` |
 
-Rétention 14 jours. **Même disque que les données** : aucune copie hors du VPS pour l'instant.
+Rétention 14 jours. **Même disque que les données** : aucune copie hors du VPS pour l'instant
+(choix du 2026-10-25, suivi dans l'issue AurelienBaraquin/my-infra#4).
 Restauration du dashboard : `dashboard/app/docs/operations.md`. Authelia : arrêter le service,
 remplacer `data/authelia/db.sqlite3`, redémarrer.
 
