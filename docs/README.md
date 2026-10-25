@@ -27,4 +27,4 @@ signalerait un document « périmé ».
 | [adr/](adr/) | Pourquoi les choix structurants ont été faits | décisions | une décision structurante est prise ou inversée |
 | [decisions-log.md](../.assistant/decisions-log.md) | Petits choix et leurs raisons | décisions | un petit choix est fait |
 | [lessons.md](../.assistant/lessons.md) | Erreurs commises et ce qui les empêche | leçons | la CI, un déploiement ou le propriétaire détecte une erreur |
-| [README.md](README.md) | Cet index et l'outillage de documentation | `scripts/check-docs.mjs` `.docs-check.json` | la vérification de la doc ou sa config change |
+| [README.md](README.md) | Cet index et l'outillage de documentation | `scripts/check-docs.mjs` `.docs-check.json` `docs/` `.assistant/` | la vérification de la doc ou sa config change |
