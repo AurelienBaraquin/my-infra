@@ -24,8 +24,10 @@ un avertissement.
 | `dashboard_db_password` | PostgreSQL du dashboard | 32 octets hex |
 | `dashboard_database_url` | app du dashboard (dérivée du mot de passe) | à chaque bootstrap si différente ; `chown 1000` |
 | `dashboard_encryption_key` | app du dashboard (chiffrement des identifiants) | 32 octets hex ; `chown 1000` |
+| `backup_passphrase` | `scripts/backup.sh` (chiffrement de la copie R2) — **à copier aussi hors du VPS** | 48 octets hex |
+| `r2_backup.env` | `scripts/backup.sh` (`R2_ACCOUNT`, `R2_BUCKET`, `R2_KEY_ID`, `R2_SECRET`) ; identifiants S3 dérivés d'un jeton Cloudflare (id du jeton, sha256 de sa valeur) | à la main |
 | `pixel_quest.env` | PixelQuest (`API_KEY`, `TURSO_DATABASE_URL`, `TURSO_DATABASE_TOKEN`) | à remplir à la main |
-| `cloudflare_api_token` | opérations DNS, `scripts/cloudflare-email.sh` (droits : DNS, Email Routing, Workers Scripts) | à la main |
+| `cloudflare_api_token` | opérations DNS, `scripts/cloudflare-email.sh` (droits : DNS, Email Routing, Workers Scripts, R2) | à la main |
 
 `scripts/bootstrap.sh` ne régénère jamais un secret existant. Variables de bootstrap facultatives :
 `AUTHELIA_USER`, `AUTHELIA_DISPLAYNAME`, `AUTHELIA_EMAIL`.

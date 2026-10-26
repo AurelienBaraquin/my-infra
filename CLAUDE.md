@@ -95,4 +95,3 @@ Ne décrire que ce qui existe. En cas de doute, l'écrire dans *Questions ouvert
 
 ## 6. Questions ouvertes
 
-- Copie des sauvegardes hors du VPS : reportée, suivie dans l'issue AurelienBaraquin/my-infra#4.

@@ -22,3 +22,4 @@ Choix trop petits pour un ADR mais à retenir. Entrées les plus récentes en ba
 - 2026-10-25 — Sous-modules exclus du contrôle de couverture de la doc — documentés dans leurs dépôts ; chaque bump déclenchait un faux « document périmé ».
 - 2026-10-25 — Email Routing Cloudflare activé sur aurelienb.com (MX/SPF), Worker `dashboard-inbox` et règle `inbox@`, le tout décrit par `scripts/cloudflare-email.sh` — réception des comptes Outlook (ADR-0010 du dashboard).
 - 2026-10-25 — `docs/` et `.assistant/` exclus du contrôle de couverture — c'est la documentation elle-même ; les couvrir rendait l'index « périmé » à chaque modification de doc.
+- 2026-10-26 — Copie hors site des sauvegardes sur Cloudflare R2 (bucket `my-infra-backups`, expiration 60 jours), archive chiffrée par openssl avant envoi, signature S3 par `curl --aws-sigv4` sans outil supplémentaire — R2 gratuit à ce volume et déjà dans le compte ; clôt l'issue #4.

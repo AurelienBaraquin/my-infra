@@ -47,7 +47,10 @@ dans `data/authelia/`) et les journaux (IP clientes dans les logs Traefik et Aut
 
 ## Limites connues
 
-- Les sauvegardes sont sur le même disque que les données.
+- Les sauvegardes locales sont sur le même disque que les données ; la copie R2 est chiffrée
+  avant envoi, et sa phrase doit être conservée hors du VPS.
+- Les identifiants R2 dérivent du jeton Cloudflare (droits larges) : un jeton dédié limité au
+  bucket serait préférable.
 - Les plages IP Cloudflare sont codées en dur : à resynchroniser (`docs/operations.md`).
 - Le dépôt est public : aucun secret ne doit jamais y entrer (l'ancien secret Vikunja publié a
   été retiré avec le service).
