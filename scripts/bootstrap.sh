@@ -21,6 +21,7 @@ gen authelia_session_secret 64
 gen authelia_storage_encryption_key 64
 gen dashboard_db_password 32
 gen dashboard_encryption_key 32
+gen backup_passphrase 48
 touch secrets/pixel_quest.env
 
 # URL complète pour l'app (dérivée du mot de passe ; régénérée s'il change).

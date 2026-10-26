@@ -23,8 +23,24 @@ Commandes à lancer dans `~/my-infra`.
 | `authelia.sqlite3` | base Authelia (2FA enregistrés, réglages) |
 | `secrets.tar.gz` | le dossier `secrets/` |
 
-Rétention 14 jours. **Même disque que les données** : aucune copie hors du VPS pour l'instant
-(choix du 2026-10-25, suivi dans l'issue AurelienBaraquin/my-infra#4).
+Rétention locale 14 jours. **Copie hors site** : le même dossier, archivé puis chiffré
+(`openssl enc -aes-256-cbc -pbkdf2 -iter 600000`, phrase `secrets/backup_passphrase`), est envoyé
+dans le bucket Cloudflare R2 `my-infra-backups` (`<hôte>/<AAAA-MM-JJ>.tar.gz.enc`, signature S3
+par `curl --aws-sigv4`, identifiants dans `secrets/r2_backup.env`). Le bucket supprime les objets
+de plus de 60 jours (règle de cycle de vie `expire-60d`).
+
+**La phrase de chiffrement doit aussi exister hors du VPS** (gestionnaire de mots de passe) : sans
+elle, la copie R2 est inutilisable si le serveur est perdu.
+
+Restaurer depuis R2 :
+
+```bash
+source secrets/r2_backup.env
+curl -fsS --aws-sigv4 "aws:amz:auto:s3" --user "$R2_KEY_ID:$R2_SECRET" \
+  "https://$R2_ACCOUNT.r2.cloudflarestorage.com/$R2_BUCKET/<hôte>/<date>.tar.gz.enc" |
+  openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass file:backup_passphrase | tar -xz
+```
+
 Restauration du dashboard : `dashboard/app/docs/operations.md`. Authelia : arrêter le service,
 remplacer `data/authelia/db.sqlite3`, redémarrer.
 
