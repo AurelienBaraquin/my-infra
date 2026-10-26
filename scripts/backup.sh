@@ -7,6 +7,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# État de la sauvegarde, lu par l'écran Santé du dashboard (kv `system.backup`).
+report() {  # report <ok:true|false> <json supplémentaire>
+  docker compose exec -T db psql -q -U dashboard -d dashboard -v ON_ERROR_STOP=1 -c \
+    "insert into kv (key, value, updated_at) values ('system.backup', '{\"at\": \"$(date -Is)\", \"ok\": $1$2}'::jsonb, now())
+     on conflict (key) do update set value = excluded.value, updated_at = now()" >/dev/null 2>&1 || true
+}
+trap 'report false ", \"error\": \"échec ligne $LINENO\""' ERR
+offsite=false
+
 day=$(date +%F)
 dest="data/backups/$day"
 mkdir -p "$dest"
@@ -29,5 +38,8 @@ if [[ -s secrets/r2_backup.env && -s secrets/backup_passphrase ]]; then
     openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -pass file:secrets/backup_passphrase > "$archive"
   curl -fsS --retry 3 -o /dev/null --aws-sigv4 "aws:amz:auto:s3" --user "$R2_KEY_ID:$R2_SECRET" \
     -T "$archive" "https://$R2_ACCOUNT.r2.cloudflarestorage.com/$R2_BUCKET/$(hostname -s)/$day.tar.gz.enc"
+  offsite=true
   echo "$(date -Is) copie hors site OK → r2://$R2_BUCKET/$(hostname -s)/$day.tar.gz.enc ($(du -h "$archive" | cut -f1))"
 fi
+
+report true ", \"size\": \"$(du -sh "$dest" | cut -f1)\", \"offsite\": $offsite"
