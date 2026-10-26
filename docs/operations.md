@@ -23,6 +23,10 @@ Commandes à lancer dans `~/my-infra`.
 | `authelia.sqlite3` | base Authelia (2FA enregistrés, réglages) |
 | `secrets.tar.gz` | le dossier `secrets/` |
 
+À la fin (ou en cas d'échec), le script écrit son état dans la base du dashboard
+(`kv.system.backup` : date, réussite, taille, copie hors site), affiché dans Réglages → Santé et
+surveillé chaque heure.
+
 Rétention locale 14 jours. **Copie hors site** : le même dossier, archivé puis chiffré
 (`openssl enc -aes-256-cbc -pbkdf2 -iter 600000`, phrase `secrets/backup_passphrase`), est envoyé
 dans le bucket Cloudflare R2 `my-infra-backups` (`<hôte>/<AAAA-MM-JJ>.tar.gz.enc`, signature S3
