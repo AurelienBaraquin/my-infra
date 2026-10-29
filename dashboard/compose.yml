@@ -25,6 +25,7 @@ services:
       DATABASE_URL_FILE: /run/secrets/dashboard_database_url
       ENCRYPTION_KEY_FILE: /run/secrets/dashboard_encryption_key
       PUBLIC_URL: https://dash.${DOMAIN}
+      INBOX_ADDRESS: inbox@${DOMAIN}
       VAPID_SUBJECT: https://dash.${DOMAIN}
       TZ: ${TZ}
     secrets: [dashboard_database_url, dashboard_encryption_key]
