@@ -11,6 +11,12 @@ Commandes à lancer dans `~/my-infra`.
 - Traefik : journal d'accès JSON limité aux erreurs (4xx/5xx) et aux requêtes de plus de 2 s ;
   tableau de bord sur `https://traefik.aurelienb.com` (SSO).
 - Mémoire : `docker stats --no-stream` (VPS de 2 Go, swap de 3 Go).
+- **Suivi dans le dashboard** (`https://dash.aurelienb.com/system`) : processeur, mémoire, swap,
+  disque, mémoire et processeur de chaque conteneur, base, coût de l'IA, sur 30 jours. Les
+  conteneurs viennent de `scripts/host-stats.sh` (`docker stats`, écrit dans `kv.system.host`), à
+  lancer toutes les 5 minutes par le cron root :
+  `*/5 * * * * /root/my-infra/scripts/host-stats.sh >/dev/null 2>&1`. L'app n'a pas accès au socket
+  Docker (ADR-0017 du dashboard). Sans cette ligne, la santé signale « Relevé des conteneurs ».
 
 ## Sauvegardes
 
@@ -90,6 +96,7 @@ Email Routing → Worker `dashboard-inbox` (`cloudflare/email-worker/worker.js`)
 
 | Quand | Quoi |
 |---|---|
+| Toutes les 5 minutes | Relevé des conteneurs pour le dashboard (cron, `scripts/host-stats.sh`) |
 | Chaque nuit | Sauvegarde (cron) |
 | Chaque semaine | Revoir les PR Dependabot (images épinglées) |
 | De temps en temps | `./scripts/cloudflare-ips.sh && docker compose restart traefik` (plages IP Cloudflare) |
