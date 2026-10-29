@@ -48,7 +48,7 @@ services:
 
   db:
     <<: *base
-    image: postgres:17.11-alpine
+    image: postgres:18.4-alpine
     mem_limit: 256m
     shm_size: 128m
     command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=40"]
