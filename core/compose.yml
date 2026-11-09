@@ -41,7 +41,7 @@ services:
     networks: [socket]
 
   traefik:
-    image: traefik:v3.7.16
+    image: traefik:v3.7.17
     <<: *hardening
     depends_on: [socket-proxy]
     read_only: true
