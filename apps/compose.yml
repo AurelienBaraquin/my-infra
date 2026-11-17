@@ -17,11 +17,15 @@ x-healthcheck: &healthcheck
   start_period: 30s
 
 services:
-  # aurelienb.com — portfolio (Next.js)
+  # aurelienb.com — portfolio (Astro statique, servi par Caddy sur :3000)
   portfolio:
     <<: *app
     build: ../portfolio
-    mem_limit: 256m
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]  # requis : le binaire caddy porte cette file-capability
+    mem_limit: 64m
+    tmpfs: [/data, /config]
     healthcheck:
       <<: *healthcheck
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
