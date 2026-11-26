@@ -19,7 +19,7 @@ doit exister (vérifié par `scripts/check-docs.mjs`).
        réseau `proxy`│              │réseau `dashboard-edge` (dédié)
    ┌─────────┬───────┼─────────┐    ▼
    ▼         ▼       ▼         ▼   dashboard app ──(réseau `dashboard-internal`)──▶ PostgreSQL
-portfolio pixelquest demo-sites chinese-notebook, portainer (SSO)
+portfolio pixelquest demo-sites chinese-notebook slasher, portainer (SSO)
 ```
 
 ## 2. Arborescence
@@ -31,13 +31,13 @@ core/                     bordure et transverse : traefik, socket-proxy, autheli
   traefik/traefik.yml     config statique (entrypoints, providers, IP Cloudflare de confiance)
   traefik/dynamic/        TLS, middlewares partagés, redirections (rechargés à chaud)
   authelia/               configuration Authelia
-apps/                     sites publics (+ demo-sites/Caddyfile)
+apps/                     sites publics (+ demo-sites/Caddyfile, slasher/ : Dockerfile + Caddyfile du jeu)
 tools/                    outils d'admin (Portainer)
 dashboard/                OS personnel : compose.yml + sous-module app/ (AurelienBaraquin/dashboard)
 scripts/                  bootstrap, déploiement, sauvegarde, IP Cloudflare, réception des mails, vérification de la doc
 cloudflare/email-worker/  Email Worker « dashboard-inbox » : inbox@aurelienb.com → dashboard
 hermes/                   config de référence (nettoyée) de l'agent Hermes, qui tourne sur l'hôte
-portfolio/ pixel_quest/ chinese_notebook/ miku/ manifeste/   sous-modules des applications
+portfolio/ pixel_quest/ chinese_notebook/ slasher/ miku/ manifeste/   sous-modules des applications
 docs/ .assistant/         documentation, journal de décisions, leçons
 .github/ .githooks/ .claude/   CI/CD et Dependabot, hooks git, skills et hook Claude Code
 ```

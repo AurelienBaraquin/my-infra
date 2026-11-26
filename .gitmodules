@@ -16,3 +16,6 @@
 [submodule "dashboard/app"]
 	path = dashboard/app
 	url = git@github.com:AurelienBaraquin/dashboard.git
+[submodule "slasher"]
+	path = slasher
+	url = https://github.com/AurelienBaraquin/slasher.git

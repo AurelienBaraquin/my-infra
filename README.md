@@ -11,6 +11,7 @@
 | PixelQuest (Vite + Express + Gemini) | [aurelienb.com/pixel-quest](https://aurelienb.com/pixel-quest/) | public | `apps` |
 | Sites démo (Caddy, statique) | `aurelienb.com/{restaurant,bijoux,agence,immobilier,medical}/` | public | `apps` |
 | Chinese Notebook (SPA, Caddy) | [chinesenote.aurelienb.com](https://chinesenote.aurelienb.com) | public | `apps` |
+| Slasher — fast-FPS web en développement ([repo](https://github.com/AurelienBaraquin/slasher)) | [slasher.aurelienb.com](https://slasher.aurelienb.com) | public | `apps` |
 | Dashboard — OS personnel ([repo](https://github.com/AurelienBaraquin/dashboard)) | [dash.aurelienb.com](https://dash.aurelienb.com) | SSO, ou jeton API/MCP | `dashboard` |
 | Réception des mails Outlook transférés | `inbox@aurelienb.com` (Cloudflare Email Routing → dashboard) | — | `cloudflare/` |
 | Authelia (portail SSO) | [auth.aurelienb.com](https://auth.aurelienb.com) | — | `core` |

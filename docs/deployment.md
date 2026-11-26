@@ -37,6 +37,10 @@ git commit -m "chore(<app>): bump to <sha court>"
 git push                                     # déclenche le déploiement
 ```
 
+Slasher n'a pas de Dockerfile dans son dépôt : il est construit par `apps/slasher/Dockerfile`
+(contexte = le sous-module `slasher/`, build Vite puis Caddy). Le même bump suffit pour le mettre à
+jour ; `index.html` est servi en `no-cache`, la nouvelle version est donc visible tout de suite.
+
 ## Déployer à la main
 
 ```bash

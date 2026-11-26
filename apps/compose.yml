@@ -89,6 +89,28 @@ services:
       traefik.http.routers.chinese-notebook.rule: Host(`chinesenote.${DOMAIN}`)
       traefik.http.services.chinese-notebook.loadbalancer.server.port: "80"
 
+  # slasher.aurelienb.com — Slasher, fast-FPS web en cours de dev (Vite + Three.js, statique).
+  # Dockerfile et Caddyfile dans apps/slasher/ (le dépôt du jeu n'en a pas).
+  slasher:
+    <<: *app
+    build:
+      context: ../slasher
+      dockerfile: ../apps/slasher/Dockerfile
+      additional_contexts:
+        conf: ./slasher
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]  # requis : le binaire caddy porte cette file-capability
+    mem_limit: 96m
+    tmpfs: [/data, /config]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.slasher.rule: Host(`slasher.${DOMAIN}`)
+      traefik.http.services.slasher.loadbalancer.server.port: "8080"
+
   # --- Archivés : non démarrés par défaut (`--profile archived` pour les relancer) ---------
   miku:
     <<: *app

@@ -24,7 +24,7 @@ Dans le périmètre :
 
 - Le proxy d'entrée, le TLS et la protection (Cloudflare + Traefik).
 - Le SSO avec double authentification devant tout ce qui est privé (Authelia).
-- Le déploiement des sites publics (portfolio, PixelQuest, sites démo, Chinese Notebook) et du
+- Le déploiement des sites publics (portfolio, PixelQuest, sites démo, Chinese Notebook, Slasher) et du
   dashboard, chacun dans son dépôt en sous-module.
 - Le déploiement continu, les sauvegardes, les secrets.
 

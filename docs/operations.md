@@ -69,7 +69,7 @@ remplacer `data/authelia/db.sqlite3`, redémarrer.
 
 Zone `aurelienb.com`, enregistrements **proxied** ; MX et SPF de l'apex gérés par Cloudflare Email
 Routing (ne pas les modifier à la main). Sous-domaines en place : apex, `www`, `auth`,
-`traefik`, `dash`, `portainer`, `chinesenote`, `miku`, `manifeste`, `onlyfans` (redirection). Un
+`traefik`, `dash`, `portainer`, `chinesenote`, `slasher`, `miku`, `manifeste`, `onlyfans` (redirection). Un
 jeton API (droits DNS) est dans `secrets/cloudflare_api_token` :
 
 ```bash

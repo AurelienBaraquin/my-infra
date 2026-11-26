@@ -34,7 +34,7 @@ Filtre l'API Docker pour Traefik : uniquement `GET` sur `version`, `containers`,
 
 ## Caddy 2.11
 
-Sert les sites démo (`apps/demo-sites/Caddyfile`) ; l'image de Chinese Notebook l'embarque aussi.
+Sert les sites démo (`apps/demo-sites/Caddyfile`) ; les images de Chinese Notebook et de Slasher (`apps/slasher/`) l'embarquent aussi.
 Piège : avec `cap_drop: [ALL]`, il faut `cap_add: [NET_BIND_SERVICE]` (capacité de fichier du
 binaire).
 
