@@ -21,7 +21,7 @@ services:
   # containers/events/version) et n'accepte que Traefik : un Traefik compromis ne peut donc ni
   # lancer de conteneur ni lire les env/secrets d'un autre.
   socket-proxy:
-    image: wollomatic/socket-proxy:1.13.2
+    image: wollomatic/socket-proxy:1.14.0
     <<: *hardening
     user: "65534:${DOCKER_GID:-111}"
     read_only: true
@@ -41,7 +41,7 @@ services:
     networks: [socket]
 
   traefik:
-    image: traefik:v3.7.16
+    image: traefik:v3.7.19
     <<: *hardening
     depends_on: [socket-proxy]
     read_only: true
